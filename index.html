@@ -125,38 +125,44 @@
     <script>
       // TODO: REEMPLAZA ESTA URL CON LA URL DE TU APLICACIÓN DE APPS SCRIPT
       // Asegúrate de que termine en /exec
-      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKMX0puJmOtPLiC9DRaFQhDYLJkiTyB3Nu-3w-c5jevLqCVF0K6cbUJBYMaAOFUpNM/exec';
+      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4hCGmshX09OLGEtsxaretYHmkcQJIV8ttR3XQ6kOoPN_H6dh18SIGFftFuDcpScHP/exec';
 
-      async function search() {
-        var word = document.getElementById('searchInput').value;
+      function handleResponse(results) {
         var statusMessage = document.getElementById('statusMessage');
         var resultsContainer = document.getElementById('resultsContainer');
         
-        statusMessage.textContent = 'Buscando...';
+        statusMessage.textContent = '';
         resultsContainer.innerHTML = '';
-
-        try {
-          const response = await fetch(`${APPS_SCRIPT_URL}?word=${encodeURIComponent(word)}`);
-          if (!response.ok) {
-            throw new Error('La respuesta de la red no fue exitosa');
-          }
-          const results = await response.json();
-
-          if (results.length > 0) {
-            statusMessage.textContent = `Se encontraron ${results.length} coincidencias.`;
-            results.forEach(function(item) {
-              var div = document.createElement('div');
-              div.className = 'result-item';
-              div.innerHTML = `<span>${item.encabezado}</span> : ${item.versiculo}`;
-              resultsContainer.appendChild(div);
-            });
-          } else {
-            statusMessage.textContent = 'No se encontraron coincidencias.';
-          }
-        } catch (error) {
-          statusMessage.textContent = 'Error: ' + error.message;
-          console.error(error);
+        
+        if (results.length > 0) {
+          statusMessage.textContent = `Se encontraron ${results.length} coincidencias.`;
+          results.forEach(function(item) {
+            var div = document.createElement('div');
+            div.className = 'result-item';
+            div.innerHTML = `<span>${item.encabezado}</span> : ${item.versiculo}`;
+            resultsContainer.appendChild(div);
+          });
+        } else {
+          statusMessage.textContent = 'No se encontraron coincidencias.';
         }
+      }
+
+      function search() {
+        var word = document.getElementById('searchInput').value;
+        var statusMessage = document.getElementById('statusMessage');
+        statusMessage.textContent = 'Buscando...';
+
+        // Elimina el script antiguo si existe
+        var oldScript = document.getElementById('jsonpScript');
+        if (oldScript) {
+          oldScript.remove();
+        }
+
+        // Crea un nuevo script para la llamada JSONP
+        var script = document.createElement('script');
+        script.id = 'jsonpScript';
+        script.src = `${APPS_SCRIPT_URL}?word=${encodeURIComponent(word)}&callback=handleResponse`;
+        document.body.appendChild(script);
       }
 
       document.getElementById('searchButton').addEventListener('click', search);
@@ -167,9 +173,4 @@
       });
     </script>
   </body>
-
 </html>
-
-
-
-
