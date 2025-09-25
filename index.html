@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Buscador de la Septuaginta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --color-bg: #f5f7fa;
+        --color-card: #ffffff;
+        --color-text: #2c3e50;
+        --color-accent: #3498db;
+        --color-hover: #2980b9;
+        --color-shadow: rgba(0, 0, 0, 0.1);
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--color-bg);
+        color: var(--color-text);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        box-sizing: border-box;
+      }
+      .container {
+        width: 100%;
+        max-width: 600px;
+        background-color: var(--color-card);
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 8px 16px var(--color-shadow);
+        text-align: center;
+      }
+      h1 {
+        font-weight: 600;
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        color: var(--color-accent);
+      }
+      .input-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      #searchInput {
+        flex-grow: 1;
+        padding: 12px;
+        font-size: 1rem;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        transition: border-color 0.3s;
+        outline: none;
+      }
+      #searchInput:focus {
+        border-color: var(--color-accent);
+      }
+      button {
+        padding: 12px 20px;
+        font-size: 1rem;
+        font-weight: 600;
+        background-color: var(--color-accent);
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.1s;
+      }
+      button:hover {
+        background-color: var(--color-hover);
+        transform: translateY(-2px);
+      }
+      #resultsContainer {
+        text-align: left;
+        padding-top: 15px;
+      }
+      .result-item {
+        background-color: #ecf0f1;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        transition: transform 0.2s;
+      }
+      .result-item:hover {
+        transform: translateX(5px);
+      }
+      .result-item span {
+        font-weight: 600;
+      }
+      #statusMessage {
+        color: #7f8c8d;
+        font-style: italic;
+        margin-top: 10px;
+      }
+      @media (max-width: 600px) {
+        .container {
+          padding: 20px;
+        }
+        h1 {
+          font-size: 1.5rem;
+        }
+        .input-container {
+          flex-direction: column;
+        }
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Buscador de la Septuaginta</h1>
+      <div class="input-container">
+        <input type="text" id="searchInput" placeholder="Ingresa una palabra en griego..." />
+        <button id="searchButton">Buscar</button>
+      </div>
+      <div id="statusMessage"></div>
+      <div id="resultsContainer"></div>
+    </div>
+    
+    <script>
+      // TODO: REEMPLAZA ESTA URL CON LA URL DE TU APLICACIÓN DE APPS SCRIPT
+      // Asegúrate de que termine en /exec
+      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfy.../exec';
+
+      async function search() {
+        var word = document.getElementById('searchInput').value;
+        var statusMessage = document.getElementById('statusMessage');
+        var resultsContainer = document.getElementById('resultsContainer');
+        
+        statusMessage.textContent = 'Buscando...';
+        resultsContainer.innerHTML = '';
+
+        try {
+          const response = await fetch(`${APPS_SCRIPT_URL}?word=${encodeURIComponent(word)}`);
+          if (!response.ok) {
+            throw new Error('La respuesta de la red no fue exitosa');
+          }
+          const results = await response.json();
+
+          if (results.length > 0) {
+            statusMessage.textContent = `Se encontraron ${results.length} coincidencias.`;
+            results.forEach(function(item) {
+              var div = document.createElement('div');
+              div.className = 'result-item';
+              div.innerHTML = `<span>${item.encabezado}</span> : ${item.versiculo}`;
+              resultsContainer.appendChild(div);
+            });
+          } else {
+            statusMessage.textContent = 'No se encontraron coincidencias.';
+          }
+        } catch (error) {
+          statusMessage.textContent = 'Error: ' + error.message;
+          console.error(error);
+        }
+      }
+
+      document.getElementById('searchButton').addEventListener('click', search);
+      document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          search();
+        }
+      });
+    </script>
+  </body>
+</html>
