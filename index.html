@@ -158,9 +158,12 @@
       </div>
 
       <div id="statusMessage"></div>
-      <div id="resultsContainer"></div>
+      <!--<div id="resultsContainer"></div>  se anula este div-->
+     <!-- se coloca un textarea para mostrar texto sin formato-->
+      <textarea id="resultsContainer" rows="10" placeholder="Los resultados de la búsqueda aparecerán aquí en formato fácil de copiar..." readonly></textarea>
     </div>
-   
+
+    
     <script>
       // TODO: REEMPLAZA ESTA URL CON LA URL DE TU APLICACIÓN DE APPS SCRIPT
       // Asegúrate de que termine en /exec
@@ -225,8 +228,28 @@
           search();
         }
       });
+
+//Nuevo fragmento de código para mostrar texto sin formato
+      function handleResponse(results) {
+    // ... (código previo)
+
+    if (results.length > 0) {
+        statusMessage.textContent = `Se encontraron ${results.length} coincidencias.`;
+        // --- CAMBIO CLAVE: CONSTRUIR TEXTO PLANO ---
+        let outputContent = results.map(function(item) {
+            // Formato simple: Libro Capítulo Versículo
+            return `${item.encabezado} ${item.versiculo}`;
+        }).join('\n'); // Unir con saltos de línea
+
+        resultsContainer.value = outputContent; // Usar .value en lugar de .innerHTML
+        // ... (código siguiente)
+    } 
+    // ... (código siguiente)
+}
     </script>
+    
   </body>
 </html>
+
 
 
