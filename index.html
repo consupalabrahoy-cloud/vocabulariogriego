@@ -238,7 +238,7 @@
         // --- CAMBIO CLAVE: CONSTRUIR TEXTO PLANO ---
         let outputContent = results.map(function(item) {
             // Formato simple: Libro Capítulo Versículo
-            return `${item.encabezado} ${item.versiculo}`;
+            return `${item.encabezado}: ${item.versiculo}`;
         }).join('\n'); // Unir con saltos de línea
 
         resultsContainer.value = outputContent; // Usar .value en lugar de .innerHTML
@@ -251,6 +251,7 @@
     
   </body>
 </html>
+
 
 
 
