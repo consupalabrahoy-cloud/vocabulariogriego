@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Concordancia de palabras griegas en el Nuevo Testamento</title>
+    <!-- Usando Inter font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
       :root {
@@ -13,6 +14,7 @@
         --color-accent: #3498db;
         --color-hover: #2980b9;
         --color-shadow: rgba(0, 0, 0, 0.1);
+        --color-gray: #7f8c8d;
       }
       body {
         font-family: 'Inter', sans-serif;
@@ -44,7 +46,7 @@
       .input-container {
         display: flex;
         gap: 10px;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
       }
       #searchInput {
         flex-grow: 1;
@@ -73,6 +75,20 @@
         background-color: var(--color-hover);
         transform: translateY(-2px);
       }
+      .mode-selector {
+        text-align: left;
+        margin-bottom: 25px;
+        font-size: 0.95rem;
+        color: var(--color-gray);
+        border: 1px solid #eee;
+        padding: 10px;
+        border-radius: 8px;
+        background-color: #fcfcfc;
+      }
+      .mode-selector label {
+        margin-right: 20px;
+        cursor: pointer;
+      }
       #resultsContainer {
         text-align: left;
         padding-top: 15px;
@@ -91,10 +107,11 @@
         font-weight: 600;
       }
       #statusMessage {
-        color: #7f8c8d;
+        color: var(--color-gray);
         font-style: italic;
         margin-top: 10px;
       }
+      /* Responsividad */
       @media (max-width: 600px) {
         .container {
           padding: 20px;
@@ -108,32 +125,55 @@
         button {
           width: 100%;
         }
+        .mode-selector {
+          text-align: center;
+        }
+        .mode-selector label {
+          display: block;
+          margin: 8px 0;
+        }
       }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>Concordancia de palabras griegas en el Nuevo Testamento.</h1>
+      
       <div class="input-container">
         <input type="text" id="searchInput" placeholder="Ingresa una palabra en griego..." />
         <button id="searchButton">Buscar</button>
       </div>
+
+      <!-- Selector de Modo de Búsqueda -->
+      <div class="mode-selector">
+        <strong style="color: var(--color-text);">Modo de Búsqueda:</strong>
+        <label>
+          <input type="radio" name="searchMode" value="loose" checked>
+          Flexible (Secuencia)
+        </label>
+        <label>
+          <input type="radio" name="searchMode" value="strict">
+          Estricta (Palabra Completa)
+        </label>
+      </div>
+
       <div id="statusMessage"></div>
       <div id="resultsContainer"></div>
     </div>
-    
+   
     <script>
       // TODO: REEMPLAZA ESTA URL CON LA URL DE TU APLICACIÓN DE APPS SCRIPT
       // Asegúrate de que termine en /exec
-      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4hCGmshX09OLGEtsxaretYHmkcQJIV8ttR3XQ6kOoPN_H6dh18SIGFftFuDcpScHP/exec';
+      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWngA_yrS-_9khitWt9kXMSLn5h5VaWDJWoyabqLn98wv48IlQ6aGfiklLTf-NJ8wB/exec';
 
+      // Función de callback que recibe la respuesta de Apps Script
       function handleResponse(results) {
         var statusMessage = document.getElementById('statusMessage');
         var resultsContainer = document.getElementById('resultsContainer');
-        
+       
         statusMessage.textContent = '';
         resultsContainer.innerHTML = '';
-        
+       
         if (results.length > 0) {
           statusMessage.textContent = `Se encontraron ${results.length} coincidencias.`;
           results.forEach(function(item) {
@@ -147,12 +187,23 @@
         }
       }
 
+      // Función principal de búsqueda
       function search() {
         var word = document.getElementById('searchInput').value;
         var statusMessage = document.getElementById('statusMessage');
+        
+        // Obtener el modo de búsqueda seleccionado
+        var mode = document.querySelector('input[name="searchMode"]:checked').value;
+
+        if (!word) {
+            statusMessage.textContent = 'Por favor, ingresa una palabra para buscar.';
+            document.getElementById('resultsContainer').innerHTML = '';
+            return;
+        }
+        
         statusMessage.textContent = 'Buscando...';
 
-        // Elimina el script antiguo si existe
+        // Elimina el script antiguo si existe (para evitar múltiples llamadas)
         var oldScript = document.getElementById('jsonpScript');
         if (oldScript) {
           oldScript.remove();
@@ -161,10 +212,13 @@
         // Crea un nuevo script para la llamada JSONP
         var script = document.createElement('script');
         script.id = 'jsonpScript';
-        script.src = `${APPS_SCRIPT_URL}?word=${encodeURIComponent(word)}&callback=handleResponse`;
+        
+        // CONSTRUCCIÓN DE LA URL: word, mode y callback son parámetros esenciales
+        script.src = `${APPS_SCRIPT_URL}?word=${encodeURIComponent(word)}&mode=${mode}&callback=handleResponse`;
         document.body.appendChild(script);
       }
 
+      // Event Listeners
       document.getElementById('searchButton').addEventListener('click', search);
       document.getElementById('searchInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
@@ -174,5 +228,3 @@
     </script>
   </body>
 </html>
-
-
