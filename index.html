@@ -162,15 +162,14 @@
      <!-- se coloca un textarea para mostrar texto sin formato-->
       <textarea id="resultsContainer" rows="10" placeholder="Los resultados de la búsqueda aparecerán aquí en formato fácil de copiar..." readonly></textarea>
     </div>
+ <script>
 
-    <script>
+    // TODO: REEMPLAZA ESTA URL CON LA URL DE TU APLICACIÓN DE APPS SCRIPT
+    // Asegúrate de que termine en /exec
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzwzhlJ1gZv9Z7uu1dO4D-sXcGSJVi8VVzFb6QX0u-ABzxD-v8wIZCxBCqDZ2b454Kh/exec';
 
-      // TODO: REEMPLAZA ESTA URL CON LA URL DE TU APLICACIÓN DE APPS SCRIPT
-      // Asegúrate de que termine en /exec
-      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzwzhlJ1gZv9Z7uu1dO4D-sXcGSJVi8VVzFb6QX0u-ABzxD-v8wIZCxBCqDZ2b454Kh/exec';
-
- // Función principal de búsqueda
-      function search() {
+    // Función principal de búsqueda
+    function search() {
         var word = document.getElementById('searchInput').value;
         var statusMessage = document.getElementById('statusMessage');
         
@@ -179,7 +178,7 @@
 
         if (!word) {
             statusMessage.textContent = 'Por favor, ingresa una palabra para buscar.';
-            document.getElementById('resultsContainer').innerHTML = '';
+            document.getElementById('resultsContainer').value = ''; // Usar .value
             return;
         }
         
@@ -188,7 +187,7 @@
         // Elimina el script antiguo si existe (para evitar múltiples llamadas)
         var oldScript = document.getElementById('jsonpScript');
         if (oldScript) {
-          oldScript.remove();
+            oldScript.remove();
         }
 
         // Crea un nuevo script para la llamada JSONP
@@ -198,45 +197,68 @@
         // CONSTRUCCIÓN DE LA URL: word, mode y callback son parámetros esenciales
         script.src = `${APPS_SCRIPT_URL}?word=${encodeURIComponent(word)}&mode=${mode}&callback=handleResponse`;
         document.body.appendChild(script);
-      }
-
-      // Event Listeners
-      document.getElementById('searchButton').addEventListener('click', search);
-      document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          search();
-        }
-      });
-
-
-function handleResponse(results) {
-    var statusMessage = document.getElementById('statusMessage');
-    var resultsContainer = document.getElementById('resultsContainer');
-    
-    // Limpiar el textarea y el mensaje de estado
-    statusMessage.textContent = '';
-    resultsContainer.value = ''; // Usar .value para el textarea
-
-    if (results.length > 0) {
-        statusMessage.textContent = 'Se encontraron ' + results.length + ' coincidencias.';
-        
-        // Construir el texto plano con el formato "Libro Capítulo: Versículo"
-        let outputContent = results.map(function(item) {
-            // Se usa .encabezado para el libro y capítulo, y .versiculo para el versículo.
-            return item.encabezado + ': ' + item.versiculo;
-        }).join('\n'); // Unir cada resultado con un salto de línea
-
-        resultsContainer.value = outputContent;
-    } else {
-        statusMessage.textContent = 'No se encontraron coincidencias.';
     }
-}
 
-</script> 
+    // Event Listeners
+    document.getElementById('searchButton').addEventListener('click', search);
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            search();
+        }
+    });
 
+    /**
+     * Procesa la respuesta JSONP de App Script, agrupando los versículos
+     * por el mismo encabezado (Libro Capítulo).
+     */
+    function handleResponse(results) {
+        var statusMessage = document.getElementById('statusMessage');
+        var resultsContainer = document.getElementById('resultsContainer');
+        
+        // Limpiar el textarea y el mensaje de estado
+        statusMessage.textContent = '';
+        resultsContainer.value = ''; // Usar .value para el textarea
+
+        if (results.length > 0) {
+            statusMessage.textContent = 'Se encontraron ' + results.length + ' coincidencias.';
+            
+            // Objeto para agrupar versículos por encabezado (Libro Capítulo)
+            let groupedResults = {};
+
+            // 1. Agrupar los versículos
+            results.forEach(function(item) {
+                const key = item.encabezado; // El encabezado es 'Libro Capítulo'
+                const versicle = item.versiculo; // El versículo es solo el número
+
+                if (groupedResults[key]) {
+                    // Si ya existe, añadir el nuevo versículo al array
+                    groupedResults[key].push(versicle);
+                } else {
+                    // Si no existe, crear un nuevo array con el primer versículo
+                    groupedResults[key] = [versicle];
+                }
+            });
+
+            // 2. Construir el contenido final en formato plano
+            let outputContent = Object.keys(groupedResults).map(function(encabezado) {
+                // Unir los versículos separados por una coma y un espacio
+                const versiclesList = groupedResults[encabezado].join(', ');
+                
+                // Formato final: "Libro Capítulo: Versículo1, Versículo2, Versículo3"
+                return `${encabezado}: ${versiclesList}`;
+            }).join('\n'); // Unir cada línea de referencia con un salto de línea
+
+            resultsContainer.value = outputContent;
+        } else {
+            statusMessage.textContent = 'No se encontraron coincidencias.';
+        }
+    }
+
+</script>
     
   </body>
 </html>
+
 
 
 
